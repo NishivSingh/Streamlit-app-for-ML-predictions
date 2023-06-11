@@ -14,7 +14,7 @@ def show_pre_processing():
     encoder_text = st.selectbox("Select",["Label Encoding", "One Hot Encoding"],label_visibility="collapsed")
     st.write("---")
 if ("df_train" not in session_state):
-    st.write("<h2 style = 'text-align : center'; > Please upload the data first for visualization! </h2>",
+    st.write("<h2 style = 'text-align : center'; > Please upload the data first for pre processing! </h2>",
              unsafe_allow_html=True)
 else:
     df_train = session_state.df_train
