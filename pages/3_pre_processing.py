@@ -1,5 +1,16 @@
 import streamlit as st
 from streamlit import session_state
+def show_missing_info(df):
+    null_text = df.isnull().any()
+    null_dict = {'column': [], 'contains null value': []}
+    for i in range(len(df.columns)):
+        null_dict['column'].append(df.columns[i])
+        if (null_text[i]):
+            null_dict['contains null value'].append("True")
+
+        else:
+            null_dict['contains null value'].append("False")
+    st.dataframe(null_dict,use_container_width=True)
 
 def show_pre_processing():
     st.write("<h1 style = 'text-align : center';> Pre-processing of data </h1>", unsafe_allow_html= True)
