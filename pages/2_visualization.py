@@ -15,7 +15,6 @@ def show_graph(x_column, y_columns):
     plt.ylabel(y_columns)
     st.pyplot(fig)
 
-
 def show_correlation_matrix(columns):
     if (len(columns) == 0):
         st.write("Please select a column")
