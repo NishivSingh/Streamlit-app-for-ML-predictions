@@ -17,7 +17,7 @@ def show_feature_selection():
     method_for_selection = st.selectbox(
         "Select", options_for_method, label_visibility="collapsed")
 
-    feature_columns = []
+    feature_columns = list()
 
     if method_for_selection == options_for_method[1]:
         columns_names = st.multiselect(

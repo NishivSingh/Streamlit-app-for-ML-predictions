@@ -5,7 +5,7 @@ def show_missing_info(df):
     st.write("<h6> Missing values information for the dataset </h6>",unsafe_allow_html=True)
     null_text = df.isnull().any()
     null_val = df.isnull().sum()
-    null_dict = {'column': [], 'contains missing value': [], 'count of missing values':[]}
+    null_dict = {'column': list(), 'contains missing value': list(), 'count of missing values':list()}
     for i in range(len(df.columns)):
         null_dict['column'].append(df.columns[i])
         if (null_text[i]):
@@ -16,7 +16,7 @@ def show_missing_info(df):
         null_dict['count of missing values'].append(null_val[i])
     st.dataframe(null_dict)
     contains_null = df.isnull().values.any()
-    col_names = []
+    col_names = list()
     if contains_null:
         for i in range(len(df.columns)):
             if null_text[i]:
