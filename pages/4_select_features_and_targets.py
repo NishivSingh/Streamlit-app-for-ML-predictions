@@ -1,21 +1,67 @@
 import streamlit as st
+import re
+import pandas as pd
 from streamlit import session_state
 
+
 def show_feature_selection():
-    st.write("<h1 style = 'text-align : center';> Select features and targets </h1>", unsafe_allow_html= True)
-    st.write("---")
-    st.write("<h4> Select feature columns </h4> ",unsafe_allow_html=True)
-    Feature_columns = st.multiselect(
-        "**Select columns**", df_train.columns,key=1,label_visibility="collapsed"
-    )
+
+    st.write("<h1 style = 'text-align : center';> Select features and targets </h1>",
+             unsafe_allow_html=True)
     st.write("---")
 
-    st.write("<h4> Select target columns </h4>" ,unsafe_allow_html=True)
+    st.write("<h4> Select feature columns </h4> ", unsafe_allow_html=True)
+    options_for_method = [None, "using column name",
+                          "using indices of columns", "using RegEx query"]
 
-    Feature_columns = st.multiselect(
-        "**Select columns**", df_train.columns,key=2,label_visibility="collapsed"
-    )
+    method_for_selection = st.selectbox(
+        "Select", options_for_method, label_visibility="collapsed")
+
+    feature_columns = []
+
+    if method_for_selection == options_for_method[1]:
+        columns_names = st.multiselect(
+            "Select", df_train.columns, key=1, label_visibility="collapsed"
+        )
+        feature_columns = columns_names
+
+    elif method_for_selection == options_for_method[2]:
+        indices = st.slider("choose the range", 0, len(
+            df_train.columns)-1, (0, len(df_train.columns)-1), label_visibility="collapsed")
+        for i in range(indices[0], indices[1]+1, 1):
+            feature_columns.append(df_train.columns[i])
+
+    elif method_for_selection == options_for_method[3]:
+        RegEx_query = st.text_input("Type your query")
+        if RegEx_query:
+            word_re = re.compile(RegEx_query)
+            for col in df_train.columns:
+                if (word_re.search(col)):
+                    feature_columns.append(col)
+    apply_btn_feature = st.button("Apply", key=2)
+
+    if apply_btn_feature:
+        session_state.features = feature_columns
+    if "features" in session_state:
+        st.dataframe(pd.DataFrame(session_state.features,
+                     columns=['selected columns']))
     st.write("---")
+
+    st.write("<h4> Select target columns </h4>", unsafe_allow_html=True)
+
+    target_columns = st.multiselect(
+        "Select", df_train.columns, key=3, label_visibility="collapsed"
+    )
+
+    apply_btn_target = st.button("Apply", key=4)
+
+    if apply_btn_target:
+        session_state.targets = target_columns
+    if "targets" in session_state:
+        st.dataframe(pd.DataFrame(session_state.targets,
+                     columns=['selected columns']))
+    st.write("---")
+
 
 if ("df_train" not in session_state):
     st.write("<h2 style = 'text-align : center'; > Please upload the data first for visualization! </h2>",
