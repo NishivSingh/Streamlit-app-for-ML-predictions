@@ -1,6 +1,16 @@
 import streamlit as st
 import pandas as pd
 from streamlit import session_state
+from streamlit_extras.add_vertical_space import add_vertical_space
+
+
+def detail(df):
+    cat_detail = [list() for i in range(len(df.columns))]
+    for i in range (len(df.dtypes)):
+        cat_detail[i].append(i+1)
+        cat_detail[i].append(df.columns[i])
+        cat_detail[i].append(str(df.dtypes[i]))
+    return cat_detail
 
 
 def show_missing_info(df):
@@ -29,9 +39,14 @@ def show_missing_info(df):
 
 
 def show_pre_processing():
+    
+    # Title
     st.write("<h1 style = 'text-align : center';> Pre-processing of data </h1>",
              unsafe_allow_html=True)
     st.write("---")
+
+
+    # Handling missing values
     st.write("<h4> Handle missing values </h4>", unsafe_allow_html=True)
     col_names = show_missing_info(df_train)
     if (len(col_names) == 0):
@@ -45,15 +60,17 @@ def show_pre_processing():
                                     "Filling the missing data by mean of the column"], label_visibility="collapsed")
     st.write("---")
 
+
+    # Handling categorical values
     st.write(" <h4> Encode categorical features </h4> ", unsafe_allow_html=True)
-    categorical_detail = df_train.dtypes
+    categorical_detail = detail(df_train)
     st.write("<h6> Datatype of all columns in dataset</h6>",
              unsafe_allow_html=True)
-    st.dataframe(pd.DataFrame(categorical_detail, columns=[
-                 "datatype"]), use_container_width=True)
+    st.dataframe(pd.DataFrame(categorical_detail), use_container_width=True)
+
     col_names_categorical = list()
     for i in range(len(categorical_detail)):
-        if (categorical_detail[i] == "str"):
+        if (categorical_detail[i][2] == "object"):
             col_names_categorical.append(df_train.columns[i])
 
     if (len(col_names_categorical) == 0):
