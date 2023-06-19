@@ -2,6 +2,8 @@ import streamlit as st
 from streamlit import session_state
 
 def show_results():
+    
+    # Title
     st.write("<h1 style = 'text-align : center';> Result and Analysis </h1>", unsafe_allow_html= True)
     st.write("---")
 

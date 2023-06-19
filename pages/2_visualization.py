@@ -1,13 +1,24 @@
 import streamlit as st
-import matplotlib.pyplot as plt
 from streamlit import session_state
+from streamlit_extras.add_vertical_space import add_vertical_space
+import matplotlib.pyplot as plt
 import seaborn as sns
+
+
+def filter_columns():
+    col_names = list()
+    categorical_detail = df_train.dtypes
+    for i in range(len(categorical_detail)):
+        if (categorical_detail[i] != "object"):
+            col_names.append(df_train.columns[i])
+    return col_names
 
 
 def show_graph(x_column, y_columns):
     fig, ax = plt.subplots()
     for i in range(len(y_columns)):
-        ax.scatter(df_train[x_column], df_train[y_columns[i]],label = y_columns[i])
+        ax.scatter(df_train[x_column],
+                   df_train[y_columns[i]], label=y_columns[i])
     ax.legend()
     ax.grid(True)
     plt.title("Scatter plot")
@@ -15,7 +26,8 @@ def show_graph(x_column, y_columns):
     plt.ylabel(y_columns)
     st.pyplot(fig)
 
-def show_correlation_matrix(columns):
+
+def show_correlation_matrix(columns, filtered_col):
     if (len(columns) == 0):
         st.write("Please select a column")
     else:
@@ -23,31 +35,36 @@ def show_correlation_matrix(columns):
         if "All" not in columns:
             correlation = df_train[columns].corr()
         else:
-            correlation = df_train.corr()
-        
-        
-        fig = plt.figure(figsize=(25, 15))
+            correlation = df_train[filtered_col].corr()
+
+        fig = plt.figure(figsize=(20, 20))
         sns.heatmap(correlation, xticklabels=correlation.columns,
-                yticklabels=correlation.columns, annot=True)
+                    yticklabels=correlation.columns, annot=True)
         st.write(fig)
+
 
 def show_box_plot(column):
     fig = plt.figure()
     sns.boxplot(df_train[column])
     st.pyplot(fig)
 
-def show_visualization_page():
 
-    st.write("<h1 style = 'text-align : center;'>Data Visualization</h1>",unsafe_allow_html=True)
+def show_visualization_page():
+    filtered_col = filter_columns()
+
+    # Title
+    st.write("<h1 style = 'text-align : center;'>Data Visualization</h1>",
+             unsafe_allow_html=True)
     st.markdown("---")
 
+    # Scatter plot
     st.subheader("Graphical correlation plot")
     graphical_correlation_plot_x_column = st.selectbox(
-        "**Select column for horizontal axis**", df_train.columns
+        "**Select column for horizontal axis**", filtered_col
     )
 
     graphical_correlation_plot_y_columns = st.multiselect(
-        "**Select columns for vertical axis**", df_train.columns,df_train.columns[0]
+        "**Select columns for vertical axis**", filtered_col, filtered_col[0]
     )
 
     show_graph(graphical_correlation_plot_x_column,
@@ -55,21 +72,22 @@ def show_visualization_page():
 
     st.markdown("---")
 
-
+    # Heatmap
     options = ["All"]
-    for column in df_train.columns:
+    for column in filtered_col:
         options.append(column)
-    
+
     st.subheader("Correlation matrix plot (heatmap)")
     correlation_matrix_plot_columns = st.multiselect(
         "**Select columns**",  options, options[0]
     )
 
-    show_correlation_matrix(correlation_matrix_plot_columns)
+    show_correlation_matrix(correlation_matrix_plot_columns, filtered_col)
     st.markdown("---")
 
+    # Boxplot
     st.subheader("Box plot")
-    box_plot_column = st.selectbox("**Select column**",df_train.columns)
+    box_plot_column = st.selectbox("**Select column**", filtered_col)
     show_box_plot(box_plot_column)
     st.write("---")
 

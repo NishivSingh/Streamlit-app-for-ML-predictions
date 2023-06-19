@@ -23,9 +23,13 @@ def parameters(model):
 
 
 def show_feature_selection():
+    
+    # Title
     st.write("<h1 style = 'text-align : center';> Select model for prediction </h1>",
              unsafe_allow_html=True)
     st.write("---")
+
+    # Model selection
     st.write(" <h4> Select model </h4>", unsafe_allow_html=True)
     add_vertical_space(1)
     st.write("<h6>Select type of model</h6>", unsafe_allow_html=True)
@@ -49,6 +53,7 @@ def show_feature_selection():
 
     st.write("---")
 
+    # Setting hyper-parameters 
     st.write("<h4> Set hyper-parameters </h4>", unsafe_allow_html=True)
     model_params,option_dict = parameters(model_text)
 
@@ -56,20 +61,31 @@ def show_feature_selection():
     values = list(model_params.values())
 
     for i in range(len(keys)):
+
         col1,col2, col3 = st.columns([10,1,10])
         col1.text_input("Key", keys[i], key=f"key_input_{i}",label_visibility="collapsed",disabled=True)
         value = values[i]
         col2.text_input(":","=",key=i, label_visibility="collapsed",disabled=True)
+
         if isinstance(value, str):
             new_value = col3.selectbox("Value", options=option_dict[keys[i]], key=f"value_input_{i}",label_visibility="collapsed")
         elif isinstance(value, bool):
             new_value = col3.checkbox("Value", value=value, key=f"value_input_{i}",label_visibility="collapsed")
         else:
-            new_value = col3.text_input("Value", value, key=f"value_input_{i}",label_visibility="collapsed")
+            new_value = col3.number_input("Value", value, key=f"value_input_{i}",label_visibility="collapsed")
+        
+        model_params[keys[i]] = new_value
+
     session_state.model_params = model_params
     st.write(session_state.model_params)
     st.write("---")
+
+    # Additional operations
     st.write("<h4> Additional operations </h4>", unsafe_allow_html=True)
+    add_vertical_space(1)
+    st.write("<h6> Please select the operations to perform</h6>",unsafe_allow_html=True)
+    cross_val = st.checkbox("Cross validation")
+    norm_val = st.checkbox("Normalization")
     st.write("---")
 
 

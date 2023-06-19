@@ -2,14 +2,34 @@ import streamlit as st
 import re
 import pandas as pd
 from streamlit import session_state
+from streamlit_extras.add_vertical_space import add_vertical_space
 
 
 def show_feature_selection():
 
+    # Title
     st.write("<h1 style = 'text-align : center';> Select features and targets </h1>",
              unsafe_allow_html=True)
     st.write("---")
 
+    # Targets selection
+    st.write("<h4> Select target columns </h4>", unsafe_allow_html=True)
+
+    target_columns = st.multiselect(
+        "Select", df_train.columns, key=3, label_visibility="collapsed"
+    )
+
+    apply_btn_target = st.button("Apply", key=4)
+
+    if apply_btn_target:
+        session_state.targets = target_columns
+    if "targets" in session_state:
+        st.dataframe(pd.DataFrame(session_state.targets,
+                     columns=['selected columns']))
+        
+    st.write("---")
+    
+    # Features selection
     st.write("<h4> Select feature columns </h4> ", unsafe_allow_html=True)
     options_for_method = [None, "using column name",
                           "using indices of columns", "using RegEx query"]
@@ -45,21 +65,7 @@ def show_feature_selection():
     if "features" in session_state:
         st.dataframe(pd.DataFrame(session_state.features,
                      columns=['selected columns']))
-    st.write("---")
-
-    st.write("<h4> Select target columns </h4>", unsafe_allow_html=True)
-
-    target_columns = st.multiselect(
-        "Select", df_train.columns, key=3, label_visibility="collapsed"
-    )
-
-    apply_btn_target = st.button("Apply", key=4)
-
-    if apply_btn_target:
-        session_state.targets = target_columns
-    if "targets" in session_state:
-        st.dataframe(pd.DataFrame(session_state.targets,
-                     columns=['selected columns']))
+    
     st.write("---")
 
 
