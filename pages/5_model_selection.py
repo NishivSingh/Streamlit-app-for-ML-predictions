@@ -1,4 +1,8 @@
 import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.svm import SVR
+from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LogisticRegression
 import streamlit as st
 from streamlit import session_state
 from streamlit_extras.add_vertical_space import add_vertical_space
@@ -8,9 +12,9 @@ def parameters(model):
     params_text = dict()
     options_dict = dict()
     if model == "Support Vector Machine":
-        params_text = {'kernal': 'rbf', 'degree': 3, 'gamma': 'scale', 'coef0': 0.0, 'tol': 0.001,
+        params_text = {'kernel': 'rbf', 'degree': 3, 'gamma': 'scale', 'coef0': 0.0, 'tol': 0.001,
                        'C': 1.0, 'epsilon': 0.1, 'shrinking': True, 'cache_size': 200, 'verbose': False, 'max_iter': -1}
-        options_dict = {'kernal' : ['linear', 'poly', 'rbf', 'sigmoid', 'precomputed'],'gamma':['scale', 'auto']}
+        options_dict = {'kernel' : ['linear', 'poly', 'rbf', 'sigmoid', 'precomputed'],'gamma':['scale', 'auto']}
     elif model == "Linear Regression":
         params_text = {'fit_intercept': True, 'copy_X': True,
                        'n_jobs': None, 'positive': False}
@@ -21,6 +25,20 @@ def parameters(model):
         options_dict = {'penalty' : ['l1', 'l2', 'elasticnet', None],'solver':['lbfgs', 'liblinear', 'newton-cg', 'newton-cholesky', 'sag', 'saga'],'multi_class':['auto', 'ovr', 'multinomial']}
     return params_text,options_dict
 
+def spilt_data(df_train,targets,features):
+    X = df_train[features]
+    y = df_train[targets]
+    X_train,X_test,y_train,y_test = train_test_split(X,y,test_size=0.2,random_state=42)
+    return X_train,X_test,y_train,y_test
+
+def create_model(model_text,model_params):
+    if (model_text == "Support Vector Machine"):
+        return SVR(**model_params)
+    
+    elif (model_text == "Linear Regression"):
+        return LinearRegression(**model_params)
+    
+    return LogisticRegression(**model_params)
 
 def show_feature_selection():
     
@@ -28,6 +46,15 @@ def show_feature_selection():
     st.write("<h1 style = 'text-align : center';> Select model for prediction </h1>",
              unsafe_allow_html=True)
     st.write("---")
+
+    # Splitting data
+    X_train,X_test,y_train,y_test = spilt_data(df_train,session_state.targets,session_state.features)
+    
+    # Storing the splitted data
+    session_state.X_train = X_train
+    session_state.X_test = X_test
+    session_state.y_train = y_train
+    session_state.y_test = y_test
 
     # Model selection
     st.write(" <h4> Select model </h4>", unsafe_allow_html=True)
@@ -50,7 +77,7 @@ def show_feature_selection():
         )
         if classification_model:
             model_text = classification_model
-
+    session_state.model_text = model_text
     st.write("---")
 
     # Setting hyper-parameters 
@@ -83,18 +110,36 @@ def show_feature_selection():
     st.write(session_state.model_params)
     st.write("---")
 
+    # Storing the model
+    model = create_model(session_state.model_text,session_state.model_params)
+    session_state.model = model
+
     # Additional operations
     st.write("<h4> Additional operations </h4>", unsafe_allow_html=True)
     add_vertical_space(1)
     st.write("<h6> Please select the operations to perform</h6>",unsafe_allow_html=True)
-    cross_val = st.checkbox("Cross validation")
-    norm_val = st.checkbox("Normalization")
+    norm_val = st.checkbox("Feature scaling")
+    cross_val = st.checkbox("Cross-validation")
+    add_vertical_space(4)
+    if norm_val:
+        st.write("<h5> Feature Scaling </h5>",unsafe_allow_html=True)
+        st.write("<h6>select type of feature scaling</h6>",unsafe_allow_html=True)
+        scaler = st.selectbox("select",["MinMaxScaler","StandardScaler"],label_visibility="collapsed")
+        perform_btn = st.button("Perform",key="norm")
+    if cross_val:
+        add_vertical_space(1)
+        st.write("<h5> Cross Validation </h5>",unsafe_allow_html=True)
+        st.write("<h6>select type of cross validation</h6>",unsafe_allow_html=True)
+        scaler = st.selectbox("select",["K-fold","Stratified k-fold","Leave-p-out","Leave-one-out"],label_visibility="collapsed")
+        perform_btn = st.button("Perform",key="cross")
     st.write("---")
 
 
 if ("df_train" not in session_state):
     st.write("<h2 style = 'text-align : center'; > Please upload the data first to use this feature! </h2>",
              unsafe_allow_html=True)
+elif ("features" not in session_state or "targets" not in session_state):
+    st.write("<h2> Please select features and targets from the dataset to continue! </h2>",unsafe_allow_html=True)
 else:
     df_train = session_state.df_train
     show_feature_selection()
