@@ -77,6 +77,9 @@ def show_feature_selection():
         model_params[keys[i]] = new_value
 
     session_state.model_params = model_params
+
+    add_vertical_space(2)
+    st.write("<h5>Current hyper-parameters</h5>",unsafe_allow_html=True)
     st.write(session_state.model_params)
     st.write("---")
 

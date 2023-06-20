@@ -8,7 +8,7 @@ from streamlit_extras.add_vertical_space import add_vertical_space
 
 def display_data_content(df):
     # data in dataframe form
-    st.dataframe(df.head(10))
+    st.dataframe(df)
     st.write(f'Shape of the data : {df.shape}')
 
     # data info

@@ -1,4 +1,5 @@
 import streamlit as st
+from sklearn import preprocessing
 import pandas as pd
 from streamlit import session_state
 from streamlit_extras.add_vertical_space import add_vertical_space
@@ -18,16 +19,17 @@ def show_missing_info(df):
              unsafe_allow_html=True)
     null_text = df.isnull().any()
     null_val = df.isnull().sum()
-    null_dict = {'column': list(), 'contains missing value': list(),
-                 'count of missing values': list()}
+    null_dict = {'Sr. no.' : list(),'Column': list(), 'isNull/isNan': list(),
+                 'Count': list()}
     for i in range(len(df.columns)):
-        null_dict['column'].append(df.columns[i])
+        null_dict['Sr. no.'].append(i+1)
+        null_dict['Column'].append(df.columns[i])
         if (null_text[i]):
-            null_dict['contains missing value'].append("True")
+            null_dict['isNull/isNan'].append("True")
 
         else:
-            null_dict['contains missing value'].append("False")
-        null_dict['count of missing values'].append(null_val[i])
+            null_dict['isNull/isNan'].append("False")
+        null_dict['Count'].append(null_val[i])
     st.dataframe(null_dict, width=500)
     contains_null = df.isnull().values.any()
     col_names = list()
@@ -37,6 +39,12 @@ def show_missing_info(df):
                 col_names.append(df.columns[i])
     return col_names
 
+def label_encode(df,col_names):
+    label_encoder = preprocessing.LabelEncoder()
+
+    for col in col_names:
+        df[col] = label_encoder.fit_transform(df[col])
+    
 
 def show_pre_processing():
     
@@ -66,7 +74,8 @@ def show_pre_processing():
     categorical_detail = detail(df_train)
     st.write("<h6> Datatype of all columns in dataset</h6>",
              unsafe_allow_html=True)
-    st.dataframe(pd.DataFrame(categorical_detail), use_container_width=True)
+    
+    st.dataframe(pd.DataFrame(categorical_detail,columns=["Sr. no.","Column","Datatype"]),hide_index=True,width=400)
 
     col_names_categorical = list()
     for i in range(len(categorical_detail)):
@@ -80,6 +89,11 @@ def show_pre_processing():
                  unsafe_allow_html=True)
         encoder_text = st.selectbox(
             "Select", ["Label Encoding", "One Hot Encoding"], label_visibility="collapsed")
+        apply_btn = st.button("Apply")
+
+        if apply_btn:
+            if encoder_text == "Label Encoding":
+                label_encode(df_train,col_names_categorical)
     st.write("---")
 
 
