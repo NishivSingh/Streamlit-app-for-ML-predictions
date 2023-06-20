@@ -93,7 +93,7 @@ def show_feature_selection():
 
 
 if ("df_train" not in session_state):
-    st.write("<h2 style = 'text-align : center'; > Please upload the data first for visualization! </h2>",
+    st.write("<h2 style = 'text-align : center'; > Please upload the data first to use this feature! </h2>",
              unsafe_allow_html=True)
 else:
     df_train = session_state.df_train

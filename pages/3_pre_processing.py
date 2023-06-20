@@ -13,7 +13,6 @@ def detail(df):
         cat_detail[i].append(str(df.dtypes[i]))
     return cat_detail
 
-
 def show_missing_info(df):
     st.write("<h6> Missing values information for the dataset </h6>",
              unsafe_allow_html=True)
