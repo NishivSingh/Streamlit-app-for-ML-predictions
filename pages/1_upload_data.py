@@ -9,14 +9,14 @@ from streamlit_extras.add_vertical_space import add_vertical_space
 def display_data_content(df):
     # data in dataframe form
     st.dataframe(df)
-    st.write(f'Shape of the data : {df.shape}')
+    st.write(f'**Shape of the data** : {df.shape[0]} rows , {df.shape[1]} columns ')
 
-    # data info
-    buffer = io.StringIO()
-    df.info(buf=buffer)
-    info_text = buffer.getvalue()
-    st.text(info_text)
-
+    # # data info
+    # buffer = io.StringIO()
+    # df.info(buf=buffer)
+    # info_text = buffer.getvalue()
+    # st.text(info_text)
+    add_vertical_space(2)
     # data description
     st.write("<h6 style = 'text-align : center ;'> Analysis of all numerical data </h6>",
              unsafe_allow_html=True)
