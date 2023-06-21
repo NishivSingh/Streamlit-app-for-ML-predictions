@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import LeavePOut, ShuffleSplit, StratifiedKFold, train_test_split
 from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import cross_val_predict
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVR
@@ -168,7 +169,7 @@ def show_feature_selection():
                 scaler = StandardScaler()
                 scaler.fit(session_state.X_train)
                 session_state.scaler = scaler
-    
+
     transform()
 
     if cross_val:
@@ -184,10 +185,13 @@ def show_feature_selection():
         perform_btn = st.button("Perform", key="cross")
 
         if perform_btn:
+            session_state.cross_val_used = True
             score_data = list()
-
+            predict = list()
             if cross_val_type == "K-fold":
                 score_data = cross_val_score(
+                    session_state.model, session_state.final_X, np.ravel(session_state.y), cv=10)
+                predict = cross_val_predict(
                     session_state.model, session_state.final_X, np.ravel(session_state.y), cv=10)
 
             elif cross_val_type == "Stratified k-fold":
@@ -201,21 +205,28 @@ def show_feature_selection():
                     session_state.model.fit(x_train_fold, y_train_fold)
                     score_data.append(session_state.model.score(
                         x_test_fold, y_test_fold))  # type: ignore
+                
             elif cross_val_type == "Monte Carlo":
                 shuffle_split = ShuffleSplit(
                     test_size=0.3, train_size=0.7, n_splits=10)
                 score_data = cross_val_score(session_state.model, session_state.final_X, np.ravel(
                     session_state.y), cv=shuffle_split)
+                predict = cross_val_predict(session_state.model, session_state.final_X, np.ravel(
+                    session_state.y), cv=shuffle_split)
+                
+            session_state.y_pred = predict
+            session_state.y_true = session_state.y
             st.write("**Results of cross validation**")
             st.text(f"cross validation scores : {score_data}")
             st.text(f"maximum score achieved : {np.max(score_data)}")
             st.text(f"minimum score achieved : {np.min(score_data)}")
             st.text(f"average score : {np.average(score_data)}")
 
+
     st.write("---")
 
 
-if ("df_train" not in session_state):
+if ("df_train" not in session_state):  # type: ignore
     st.write("<h2 style = 'text-align : center'; > Please upload the data first to use this feature! </h2>",
              unsafe_allow_html=True)
 elif ("features" not in session_state or "targets" not in session_state):
