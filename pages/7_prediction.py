@@ -27,4 +27,8 @@ if ("df_train" not in session_state):
              unsafe_allow_html=True)
 else:
     df_train = session_state.df_train
-    show_results()
+    if "df_test" not in session_state:
+        st.write("<h2 style = 'text-align : center'; > No test data is upload for prediction !</h2>",
+             unsafe_allow_html=True)
+    else:
+        show_results()
