@@ -3,7 +3,7 @@ from mlxtend.plotting import plot_confusion_matrix
 import numpy as np
 import pandas as pd
 from sklearn import metrics
-from sklearn.metrics import classification_report, confusion_matrix, mean_absolute_error, mean_squared_error,r2_score
+from sklearn.metrics import classification_report, confusion_matrix, mean_absolute_error, mean_squared_error,r2_score,accuracy_score
 import streamlit as st
 from streamlit import session_state
 from streamlit_extras.add_vertical_space import add_vertical_space
@@ -32,7 +32,6 @@ def show_results():
     # Title
     st.write("<h1 style = 'text-align : center';> Result and Analysis </h1>", unsafe_allow_html= True)
     st.write("---")
-
     # Getting the predictions
     if "y_pred" not in session_state:
         session_state.model.fit(session_state.final_X_train,np.ravel(session_state.y_train))
@@ -57,7 +56,11 @@ def show_results():
         st.pyplot(fig,use_container_width=True)
 
         add_vertical_space(2)
+        st.write(f"<div style = 'width:50%; margin:auto;'><span style = 'font-weight : bold;'>Accuracy score </span>: {accuracy_score(y_true=session_state.y_true,y_pred=session_state.y_pred)}</div>",unsafe_allow_html=True)
+        
+        add_vertical_space(2)
         st.write("<h4 style = 'text-align : center;'> Classification report </h4>", unsafe_allow_html=True)
+
         class_report = pd.DataFrame(classification_report(y_true=session_state.y_true,y_pred=session_state.y_pred,output_dict=True))
         st.dataframe(class_report,use_container_width=True) # type: ignore
 
@@ -66,4 +69,8 @@ if ("df_train" not in session_state):
              unsafe_allow_html=True)
 else:
     df_train = session_state.df_train
-    show_results()
+    if "model" not in session_state:
+        st.write("<h2 style = 'text-align : center'; > Please choose a model first to use this feature! </h2>",
+             unsafe_allow_html=True)
+    else:
+        show_results()
