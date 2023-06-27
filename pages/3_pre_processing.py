@@ -1,5 +1,6 @@
 import streamlit as st
 from sklearn import preprocessing
+from sklearn.impute import SimpleImputer
 import pandas as pd
 from streamlit import session_state
 from streamlit_extras.add_vertical_space import add_vertical_space
@@ -19,8 +20,9 @@ def show_missing_info(df):
              unsafe_allow_html=True)
     null_text = df.isnull().any()
     null_val = df.isnull().sum()
+    total_val = df.shape[0]
     null_dict = {'Sr. no.' : list(),'Column': list(), 'isNull/isNan': list(),
-                 'Count': list()}
+                 'Count': list(),"missing data (%)":list()}
     for i in range(len(df.columns)):
         null_dict['Sr. no.'].append(i+1)
         null_dict['Column'].append(df.columns[i])
@@ -30,6 +32,8 @@ def show_missing_info(df):
         else:
             null_dict['isNull/isNan'].append("False")
         null_dict['Count'].append(null_val[i])
+        null_dict['missing data (%)'].append(null_val[i]*100/total_val)
+
     st.dataframe(null_dict, width=500)
     contains_null = df.isnull().values.any()
     col_names = list()
@@ -39,6 +43,18 @@ def show_missing_info(df):
                 col_names.append(df.columns[i])
     return col_names
 
+def handle(missing_text,missing_columns):
+    if (missing_text == "Delete selected columns"):
+        session_state.df_train = session_state.df_train.drop(missing_columns, axis=1)
+        if ("df_test" in session_state):
+            session_state.df_test = session_state.df_test.drop(missing_columns, axis=1)
+    else:
+        # Imputation
+        my_imputer = SimpleImputer()
+        session_state.df_train = pd.DataFrame(my_imputer.fit_transform(session_state.df_train),columns=session_state.df_train.columns)
+
+        if "df_test" in session_state:
+            session_state.df_test = pd.DataFrame(my_imputer.transform(session_state.df_test),columns=session_state.df_test.columns)
 
 def encode(text,encode_col_names):
     if (text == "Label Encoding"):
@@ -73,21 +89,6 @@ def show_pre_processing():
     st.write("---")
 
 
-    # Handling missing values
-    st.write("<h4> Handle missing values </h4>", unsafe_allow_html=True)
-    col_names = show_missing_info(session_state.df_train)
-    if (len(col_names) == 0):
-        st.write("The data does not have any missing values !")
-    else:
-        st.write("<h6> Choose columns </h6>", unsafe_allow_html=True)
-        missing_columns = st.selectbox(
-            "Select", col_names, label_visibility="collapsed")
-        st.write("<h6> Select a method </h6>", unsafe_allow_html=True)
-        missing_text = st.selectbox("Select", ["Delete columns having > 75% missing data",
-                                    "Filling the missing data by mean of the column"], label_visibility="collapsed")
-    st.write("---")
-
-
     # Handling categorical values
     st.write(" <h4> Encode categorical features </h4> ", unsafe_allow_html=True)
     categorical_detail = detail(session_state.df_train)
@@ -105,13 +106,13 @@ def show_pre_processing():
         st.write("The data does not have any categorical features !")
     else:
         st.write("""
-        # When to use a Label Encoding vs. One Hot Encoding
+        ##### When to use a Label Encoding vs. One Hot Encoding
         This question generally depends on your dataset and the model which you wish to apply. But still, a few points to note before choosing the right encoding technique for your model:
 
-        ##### We apply One-Hot Encoding when:
+        ###### We apply One-Hot Encoding when:
         1. The categorical feature is not ordinal (e.g. countries , gender )
         2. The number of categorical features is **less** so one-hot encoding can be effectively applied
-        ##### We apply Label Encoding when:
+        ###### We apply Label Encoding when:
         1. The categorical feature is ordinal (e.g. tall, short, primary school, high school)
         2. The number of categories is quite **large** as one-hot encoding can lead to high memory consumption
         """)
@@ -128,7 +129,31 @@ def show_pre_processing():
         if apply_btn:
             encode(encoder_text,encode_col_names)
             st.experimental_rerun()
+    add_vertical_space(2)
+    st.write("---")
+    add_vertical_space(2)
 
+
+    # Handling missing values
+    st.write("<h4> Handle missing values </h4>", unsafe_allow_html=True)
+    col_names = show_missing_info(session_state.df_train)
+    if (len(col_names) == 0):
+        st.write("The data does not have any missing values !")
+    else:
+        st.write("<h6> Choose columns </h6>", unsafe_allow_html=True)
+        missing_columns = st.selectbox(
+            "Select", col_names, label_visibility="collapsed")
+        st.write("<h6> Select a method </h6>", unsafe_allow_html=True)
+        missing_text = st.selectbox("Select", ["Delete selected columns",
+                                    "Impute the columns"], label_visibility="collapsed")
+        
+        apply_btn = st.button("Apply",key="missing_key")
+
+        if apply_btn:
+            handle(missing_text,missing_columns)
+            st.experimental_rerun()
+        
+    st.write("---")
             
 
     st.write("---")
