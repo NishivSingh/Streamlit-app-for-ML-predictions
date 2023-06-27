@@ -33,7 +33,7 @@ def display_upload_data_page():
     # File uploading
     training_data_file_name = st.file_uploader(
         "**Upload the training data**", ["csv"])
-
+    
     # Storing data in backend
     if training_data_file_name is not None:
         df_train = pd.read_csv(training_data_file_name)
@@ -42,6 +42,16 @@ def display_upload_data_page():
     # Displaying data
     if "df_train" in session_state:
         display_data_content(session_state.df_train)
+
+    st.write("---")
+    add_vertical_space(4)
+    # Testing data
+    testing_data_file_name = st.file_uploader(
+        "**Upload the testing data**", ["csv"])
+    if testing_data_file_name is not None:
+        df_test = pd.read_csv(testing_data_file_name)
+        session_state.df_test = df_test
+        
     st.write("---")
 
 

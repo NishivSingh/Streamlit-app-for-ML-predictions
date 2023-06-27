@@ -11,6 +11,7 @@ def detail(df):
         cat_detail[i].append(i+1)
         cat_detail[i].append(df.columns[i])
         cat_detail[i].append(str(df.dtypes[i]))
+        cat_detail[i].append(df[df.columns[i]].nunique())
     return cat_detail
 
 def show_missing_info(df):
@@ -38,11 +39,16 @@ def show_missing_info(df):
                 col_names.append(df.columns[i])
     return col_names
 
-def label_encode(df,col_names):
+@st.cache_data
+def encode(text,encode_col_names):
+    if (text == "Label Encoding"):
+        label_encode(encode_col_names)
+
+def label_encode(col_names):
     label_encoder = preprocessing.LabelEncoder()
 
     for col in col_names:
-        df[col] = label_encoder.fit_transform(df[col])
+        session_state.df_train[col] = label_encoder.fit_transform(session_state.df_train[col])
     
 
 def show_pre_processing():
@@ -55,7 +61,7 @@ def show_pre_processing():
 
     # Handling missing values
     st.write("<h4> Handle missing values </h4>", unsafe_allow_html=True)
-    col_names = show_missing_info(df_train)
+    col_names = show_missing_info(session_state.df_train)
     if (len(col_names) == 0):
         st.write("The data does not have any missing values !")
     else:
@@ -70,29 +76,35 @@ def show_pre_processing():
 
     # Handling categorical values
     st.write(" <h4> Encode categorical features </h4> ", unsafe_allow_html=True)
-    categorical_detail = detail(df_train)
+    categorical_detail = detail(session_state.df_train)
     st.write("<h6> Datatype of all columns in dataset</h6>",
              unsafe_allow_html=True)
     
-    st.dataframe(pd.DataFrame(categorical_detail,columns=["Sr. no.","Column","Datatype"]),hide_index=True,width=400)
+    st.dataframe(pd.DataFrame(categorical_detail,columns=["Sr. no.","Column","Datatype","Unique values count"]),hide_index=True,width=400)
 
     col_names_categorical = list()
     for i in range(len(categorical_detail)):
         if (categorical_detail[i][2] == "object"):
-            col_names_categorical.append(df_train.columns[i])
+            col_names_categorical.append(session_state.df_train.columns[i])
 
     if (len(col_names_categorical) == 0):
         st.write("The data does not have any categorical features !")
     else:
+        st.write("<h6>Choose columns for encoding</h6>",unsafe_allow_html=True)
+        encode_col_names = st.multiselect("Select",col_names_categorical,label_visibility="collapsed")
         st.write(" <h6> Select a method for encoding </h6>",
                  unsafe_allow_html=True)
         encoder_text = st.selectbox(
             "Select", ["Label Encoding", "One Hot Encoding"], label_visibility="collapsed")
+        
         apply_btn = st.button("Apply")
 
         if apply_btn:
-            if encoder_text == "Label Encoding":
-                label_encode(df_train,col_names_categorical)
+            encode(encoder_text,encode_col_names)
+            st.experimental_rerun()
+
+            
+
     st.write("---")
 
 
@@ -100,5 +112,4 @@ if ("df_train" not in session_state):
     st.write("<h2 style = 'text-align : center'; > Please upload the data first for pre processing! </h2>",
              unsafe_allow_html=True)
 else:
-    df_train = session_state.df_train
     show_pre_processing()

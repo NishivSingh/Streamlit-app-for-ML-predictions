@@ -1,3 +1,4 @@
+import traceback
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import LeavePOut, ShuffleSplit, StratifiedKFold, train_test_split
@@ -26,10 +27,10 @@ def parameters(model):
                        'n_jobs': 0, 'positive': False}
         options_dict = {}
     elif model == "Logistic Regression":
-        params_text = {'penalty': 'l2', 'dual': False, 'tol': 0.0001, 'C': 1.0, 'fit_intercept': True, 'intercept_scaling': 1, 'class_weight': 0,
-                       'random_state': 42, 'solver': 'lbfgs', 'max_iter': 100, 'multi_class': 'auto', 'verbose': 0, 'warm_start': False, 'n_jobs': 0, 'l1_ratio': 0}
-        options_dict = {'penalty': ['l1', 'l2', 'elasticnet', None], 'solver': [
-            'lbfgs', 'liblinear', 'newton-cg', 'newton-cholesky', 'sag', 'saga'], 'multi_class': ['auto', 'ovr', 'multinomial']}
+        params_text = {'penalty': 'l2', 'dual': False, 'tol': 0.0001, 'C': 1.0, 'fit_intercept': True, 'intercept_scaling': 1, 'class_weight': "balanced",
+                       'random_state': 42, 'solver': 'lbfgs', 'max_iter': 100, 'multi_class': 'auto', 'verbose': 0, 'warm_start': False, 'n_jobs': 1, 'l1_ratio': 0}
+        options_dict = {'penalty': ['l2', 'l1', 'elasticnet', None], 'solver': [
+            'lbfgs', 'liblinear', 'newton-cg', 'newton-cholesky', 'sag', 'saga'], 'multi_class': ['auto', 'ovr', 'multinomial'],'class_weight' : ['balanced']}
     return params_text, options_dict
 
 
@@ -88,6 +89,8 @@ def show_feature_selection():
     st.write("<h6>Select type of model</h6>", unsafe_allow_html=True)
     model_type = st.radio(
         "Select", ["Regression model", "Classification model"], label_visibility="collapsed")
+    
+    session_state.model_type = model_type
     model_text = str()
     if model_type == "Regression model":
         st.write(" <h6> Regression model </h6>", unsafe_allow_html=True)
@@ -124,7 +127,7 @@ def show_feature_selection():
 
         if isinstance(value, str):
             new_value = col3.selectbox(
-                "Value", options=option_dict[keys[i]], key=f"value_input_{i}", label_visibility="collapsed")
+                "Value", options=option_dict[keys[i]], key=f"value_input_{i}", label_visibility="collapsed",)
         elif isinstance(value, bool):
             new_value = col3.checkbox(
                 "Value", value=value, key=f"value_input_{i}", label_visibility="collapsed")
@@ -178,49 +181,40 @@ def show_feature_selection():
         st.write("<h6>select type of cross validation</h6>",
                  unsafe_allow_html=True)
         cross_val_options = ["K-fold", "Monte Carlo"]
-        if (model_type == "Classification model"):
-            cross_val_options.append("Stratified k-fold")
         cross_val_type = st.selectbox(
             "select", cross_val_options, label_visibility="collapsed")
         perform_btn = st.button("Perform", key="cross")
 
         if perform_btn:
-            session_state.cross_val_used = True
-            score_data = list()
-            predict = list()
-            if cross_val_type == "K-fold":
-                score_data = cross_val_score(
-                    session_state.model, session_state.final_X, np.ravel(session_state.y), cv=10)
-                predict = cross_val_predict(
-                    session_state.model, session_state.final_X, np.ravel(session_state.y), cv=10)
-
-            elif cross_val_type == "Stratified k-fold":
-                skf = StratifiedKFold(
-                    n_splits=2, shuffle=True, random_state=42)
-
-                for train_index, test_index in skf.split(session_state.final_X, session_state.y):
-                    x_train_fold, x_test_fold = session_state.final_X[
-                        train_index], session_state.final_X[test_index]
-                    y_train_fold, y_test_fold = session_state.y[train_index], session_state.y[test_index]
-                    session_state.model.fit(x_train_fold, y_train_fold)
-                    score_data.append(session_state.model.score(
-                        x_test_fold, y_test_fold))  # type: ignore
-                
-            elif cross_val_type == "Monte Carlo":
-                shuffle_split = ShuffleSplit(
-                    test_size=0.3, train_size=0.7, n_splits=10)
-                score_data = cross_val_score(session_state.model, session_state.final_X, np.ravel(
-                    session_state.y), cv=shuffle_split)
-                predict = cross_val_predict(session_state.model, session_state.final_X, np.ravel(
-                    session_state.y), cv=shuffle_split)
-                
-            session_state.y_pred = predict
-            session_state.y_true = session_state.y
-            st.write("**Results of cross validation**")
-            st.text(f"cross validation scores : {score_data}")
-            st.text(f"maximum score achieved : {np.max(score_data)}")
-            st.text(f"minimum score achieved : {np.min(score_data)}")
-            st.text(f"average score : {np.average(score_data)}")
+            try:
+                session_state.cross_val_used = True
+                score_data = list()
+                predict = list()
+                if cross_val_type == "K-fold":
+                    score_data = cross_val_score(
+                        session_state.model, session_state.final_X, np.ravel(session_state.y), cv=10)
+                    predict = cross_val_predict(
+                        session_state.model, session_state.final_X, np.ravel(session_state.y), cv=10)
+                    
+                elif cross_val_type == "Monte Carlo":
+                    shuffle_split = ShuffleSplit(
+                        test_size=0.3, train_size=0.7, n_splits=10)
+                    score_data = cross_val_score(session_state.model, session_state.final_X, np.ravel(
+                        session_state.y), cv=shuffle_split)
+                    predict = cross_val_predict(session_state.model, session_state.final_X, np.ravel(
+                        session_state.y), cv=shuffle_split)
+                    
+                session_state.y_pred = predict
+                session_state.y_true = session_state.y
+                st.write("**Results of cross validation**")
+                st.text(f"cross validation scores : {score_data}")
+                st.text(f"maximum score achieved : {np.max(score_data)}")
+                st.text(f"minimum score achieved : {np.min(score_data)}")
+                st.text(f"average score : {np.average(score_data)}")
+            except ValueError as e:
+                traceback_str = str(traceback.format_exc())
+                last_line = traceback_str.strip().split('\n')[-1]
+                st.write(last_line)
 
 
     st.write("---")
