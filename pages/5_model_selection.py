@@ -13,7 +13,7 @@ import streamlit as st
 from streamlit import session_state
 from streamlit_extras.add_vertical_space import add_vertical_space
 
-
+@st.cache_data
 def parameters(model):
     params_text = dict()
     options_dict = dict()
@@ -41,7 +41,7 @@ def spilt_data(df_train, targets, features):
         session_state.X, session_state.y, test_size=0.2, random_state=42)
     return X_train, X_test, y_train, y_test
 
-
+@st.cache_data
 def create_model(model_text, model_params):
     if (model_text == "Support Vector Machine"):
         return SVR(**model_params)
@@ -142,11 +142,13 @@ def show_feature_selection():
     add_vertical_space(2)
     st.write("<h5>Current hyper-parameters</h5>", unsafe_allow_html=True)
     st.write(session_state.model_params)
-    st.write("---")
 
     # Storing the model
     model = create_model(session_state.model_text, session_state.model_params)
-    session_state.model = model
+    save_model = st.button("Save this model")
+    if save_model:
+        session_state.model = model
+    st.write("---")
 
     # Additional operations
     st.write("<h4> Additional operations </h4>", unsafe_allow_html=True)

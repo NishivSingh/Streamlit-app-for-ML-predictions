@@ -39,17 +39,31 @@ def show_missing_info(df):
                 col_names.append(df.columns[i])
     return col_names
 
-@st.cache_data
+
 def encode(text,encode_col_names):
     if (text == "Label Encoding"):
         label_encode(encode_col_names)
+    else:
+        one_hot_encode(encode_col_names)
 
 def label_encode(col_names):
     label_encoder = preprocessing.LabelEncoder()
 
     for col in col_names:
         session_state.df_train[col] = label_encoder.fit_transform(session_state.df_train[col])
-    
+        if "df_test" in session_state:
+            if (col in session_state.df_test.columns):
+                session_state.df_test[col] = label_encoder.fit_transform(session_state.df_test[col])
+
+def one_hot_encode(col_names):
+    session_state.df_train = pd.get_dummies(session_state.df_train,columns=col_names,drop_first=True)
+    if "df_test" in session_state:
+        test_columns = list()
+        for col in col_names:
+            if (col in session_state.df_test):
+                test_columns.append(col)
+        session_state.df_test = pd.get_dummies(session_state.df_test,columns=test_columns,drop_first=True)
+
 
 def show_pre_processing():
     
@@ -80,7 +94,7 @@ def show_pre_processing():
     st.write("<h6> Datatype of all columns in dataset</h6>",
              unsafe_allow_html=True)
     
-    st.dataframe(pd.DataFrame(categorical_detail,columns=["Sr. no.","Column","Datatype","Unique values count"]),hide_index=True,width=400)
+    st.dataframe(pd.DataFrame(categorical_detail,columns=["Sr. no.","Column","Datatype","Unique values count"]),hide_index=True)
 
     col_names_categorical = list()
     for i in range(len(categorical_detail)):
@@ -90,6 +104,18 @@ def show_pre_processing():
     if (len(col_names_categorical) == 0):
         st.write("The data does not have any categorical features !")
     else:
+        st.write("""
+        # When to use a Label Encoding vs. One Hot Encoding
+        This question generally depends on your dataset and the model which you wish to apply. But still, a few points to note before choosing the right encoding technique for your model:
+
+        ##### We apply One-Hot Encoding when:
+        1. The categorical feature is not ordinal (e.g. countries , gender )
+        2. The number of categorical features is **less** so one-hot encoding can be effectively applied
+        ##### We apply Label Encoding when:
+        1. The categorical feature is ordinal (e.g. tall, short, primary school, high school)
+        2. The number of categories is quite **large** as one-hot encoding can lead to high memory consumption
+        """)
+        add_vertical_space(2)
         st.write("<h6>Choose columns for encoding</h6>",unsafe_allow_html=True)
         encode_col_names = st.multiselect("Select",col_names_categorical,label_visibility="collapsed")
         st.write(" <h6> Select a method for encoding </h6>",

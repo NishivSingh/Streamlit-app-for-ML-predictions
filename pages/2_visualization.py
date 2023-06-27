@@ -4,7 +4,6 @@ from streamlit_extras.add_vertical_space import add_vertical_space
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-
 def filter_columns():
     col_names = list()
     categorical_detail = df_train.dtypes
@@ -13,7 +12,7 @@ def filter_columns():
             col_names.append(df_train.columns[i])
     return col_names
 
-
+@st.cache_data
 def show_graph(x_column, y_columns):
     fig, ax = plt.subplots()
     for i in range(len(y_columns)):
@@ -26,7 +25,7 @@ def show_graph(x_column, y_columns):
     plt.ylabel(y_columns)
     st.pyplot(fig)
 
-
+@st.cache_data
 def show_correlation_matrix(columns, filtered_col):
     if (len(columns) == 0):
         st.write("Please select a column")
@@ -42,7 +41,7 @@ def show_correlation_matrix(columns, filtered_col):
                     yticklabels=correlation.columns, annot=True)
         st.write(fig)
 
-
+@st.cache_data
 def show_box_plot(column):
     fig = plt.figure()
     sns.boxplot(df_train[column])
