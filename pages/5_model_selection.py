@@ -13,7 +13,7 @@ import streamlit as st
 from streamlit import session_state
 from streamlit_extras.add_vertical_space import add_vertical_space
 
-@st.cache_data
+
 def parameters(model):
     params_text = dict()
     options_dict = dict()
@@ -41,7 +41,7 @@ def spilt_data(df_train, targets, features):
         session_state.X, session_state.y, test_size=0.2, random_state=42)
     return X_train, X_test, y_train, y_test
 
-@st.cache_data
+
 def create_model(model_text, model_params):
     if (model_text == "Support Vector Machine"):
         return SVR(**model_params)
@@ -89,8 +89,6 @@ def show_feature_selection():
     st.write("<h6>Select type of model</h6>", unsafe_allow_html=True)
     model_type = st.radio(
         "Select", ["Regression model", "Classification model"], label_visibility="collapsed")
-    
-    session_state.model_type = model_type
     model_text = str()
     if model_type == "Regression model":
         st.write(" <h6> Regression model </h6>", unsafe_allow_html=True)
@@ -147,6 +145,7 @@ def show_feature_selection():
     model = create_model(session_state.model_text, session_state.model_params)
     save_model = st.button("Save this model")
     if save_model:
+        session_state.model_type = model_type
         session_state.model = model
     st.write("---")
 

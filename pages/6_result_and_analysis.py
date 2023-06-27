@@ -42,8 +42,8 @@ def show_results():
     if (session_state.model_type == "Regression model"):
         mae,mse,rmse,r_squared = evaluation(session_state.y_true,session_state.y_pred)
         eval_dict = {"evaluation method": ["mean absolute error","mean squared error","root mean squared error", "r-squared score"], "value":[mae,mse,rmse,r_squared]}
-        col1,col2,col3 = st.columns([2,1,2])
-        col2.dataframe(eval_dict)
+        col1,col2,col3 = st.columns([1,2,1])
+        col2.dataframe(eval_dict,use_container_width=True)
         show_graph(session_state.y_true,session_state.y_pred)
     
     # Classification model results
