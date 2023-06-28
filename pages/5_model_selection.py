@@ -184,8 +184,16 @@ def show_feature_selection():
         cross_val_options = ["K-fold", "Monte Carlo"]
         cross_val_type = st.selectbox(
             "select", cross_val_options, label_visibility="collapsed")
+        add_vertical_space(2)
+        k_val = 10
+        n_splits = 10
+        if cross_val_type == cross_val_options[0]:
+            k_val = st.slider("Choose the value of k",1,20,10)
+        else:
+            n_splits = st.slider("Choose the value for n_splits",1,20,10)
+        add_vertical_space(2)
         perform_btn = st.button("Perform", key="cross")
-
+        
         if perform_btn:
             try:
                 session_state.cross_val_used = True
@@ -193,11 +201,11 @@ def show_feature_selection():
                 predict = list()
                 if cross_val_type == "K-fold":
                     score_data = cross_val_score(
-                        session_state.model, session_state.final_X, np.ravel(session_state.y), cv=10)
+                        session_state.model, session_state.final_X, np.ravel(session_state.y), cv=k_val)
 
                 elif cross_val_type == "Monte Carlo":
                     shuffle_split = ShuffleSplit(
-                        test_size=0.3, train_size=0.7, n_splits=5)
+                        test_size=0.3, train_size=0.7, n_splits=n_splits)
                     score_data = cross_val_score(session_state.model, session_state.final_X, np.ravel(
                         session_state.y), cv=shuffle_split)
                     
