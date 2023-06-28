@@ -32,11 +32,11 @@ def show_results():
     # Title
     st.write("<h1 style = 'text-align : center';> Result and Analysis </h1>", unsafe_allow_html= True)
     st.write("---")
+    
     # Getting the predictions
-    if "y_pred" not in session_state:
-        session_state.model.fit(session_state.final_X_train,np.ravel(session_state.y_train))
-        session_state.y_pred = session_state.model.predict(session_state.final_X_test)
-        session_state.y_true = session_state.y_test
+    session_state.model.fit(session_state.final_X_train,np.ravel(session_state.y_train))
+    session_state.y_pred = session_state.model.predict(session_state.final_X_test)
+    session_state.y_true = session_state.y_test
     
     # Regression model results
     if (session_state.model_type == "Regression model"):

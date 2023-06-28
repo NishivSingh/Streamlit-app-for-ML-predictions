@@ -6,7 +6,7 @@ from streamlit import session_state
 @st.cache_data
 def convert_df_to_csv(df):
   # IMPORTANT: Cache the conversion to prevent computation on every rerun
-  return df.to_csv().encode('utf-8')
+  return df.to_csv(index = False).encode('utf-8')
 
 def show_results():
     
@@ -18,7 +18,7 @@ def show_results():
         session_state.final_X_test = session_state.scaler.transform(session_state.X_test)
     session_state.model.fit(session_state.final_X_train,np.ravel(session_state.y_train))
     predictions = pd.DataFrame(session_state.model.predict(session_state.final_X_test),columns=session_state.targets)
-    st.download_button(label="Download predictions",data=convert_df_to_csv(predictions),file_name="predictions.csv",mime="text/csv",)
+    st.download_button(label="Download predictions",data=convert_df_to_csv(predictions),file_name="predictions.csv",mime="text/csv")
 
     
 

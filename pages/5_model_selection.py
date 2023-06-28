@@ -194,18 +194,14 @@ def show_feature_selection():
                 if cross_val_type == "K-fold":
                     score_data = cross_val_score(
                         session_state.model, session_state.final_X, np.ravel(session_state.y), cv=10)
-                    predict = cross_val_predict(
-                        session_state.model, session_state.final_X, np.ravel(session_state.y), cv=10)
-                    
+
                 elif cross_val_type == "Monte Carlo":
                     shuffle_split = ShuffleSplit(
-                        test_size=0.3, train_size=0.7, n_splits=10)
+                        test_size=0.3, train_size=0.7, n_splits=5)
                     score_data = cross_val_score(session_state.model, session_state.final_X, np.ravel(
                         session_state.y), cv=shuffle_split)
-                    predict = cross_val_predict(session_state.model, session_state.final_X, np.ravel(
-                        session_state.y), cv=shuffle_split)
                     
-                session_state.y_pred = predict
+                
                 session_state.y_true = session_state.y
                 st.write("**Results of cross validation**")
                 st.text(f"cross validation scores : {score_data}")
