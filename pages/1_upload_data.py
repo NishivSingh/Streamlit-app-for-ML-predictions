@@ -9,7 +9,8 @@ from streamlit_extras.add_vertical_space import add_vertical_space
 def display_data_content(df):
     # data in dataframe form
     st.dataframe(df)
-    st.write(f'**Shape of the data** : {df.shape[0]} rows , {df.shape[1]} columns ')
+    st.write(
+        f'**Shape of the data** : {df.shape[0]} rows , {df.shape[1]} columns ')
 
     # # data info
     # buffer = io.StringIO()
@@ -33,25 +34,16 @@ def display_upload_data_page():
     # File uploading
     training_data_file_name = st.file_uploader(
         "**Upload the training data**", ["csv"])
-    
+
     # Storing data in backend
     if training_data_file_name is not None:
         df_train = pd.read_csv(training_data_file_name)
         session_state.df_train = df_train
-    
+
     # Displaying data
     if "df_train" in session_state:
         display_data_content(session_state.df_train)
 
-    st.write("---")
-    add_vertical_space(4)
-    # Testing data
-    testing_data_file_name = st.file_uploader(
-        "**Upload the testing data**", ["csv"])
-    if testing_data_file_name is not None:
-        df_test = pd.read_csv(testing_data_file_name)
-        session_state.df_test = df_test
-        
     st.write("---")
 
 
