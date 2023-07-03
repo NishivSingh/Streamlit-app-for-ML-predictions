@@ -8,12 +8,13 @@ from streamlit_extras.add_vertical_space import add_vertical_space
 
 def detail(df):
     cat_detail = [list() for i in range(len(df.columns))]
-    for i in range (len(df.dtypes)):
+    for i in range(len(df.dtypes)):
         cat_detail[i].append(i+1)
         cat_detail[i].append(df.columns[i])
         cat_detail[i].append(str(df.dtypes[i]))
         cat_detail[i].append(df[df.columns[i]].nunique())
     return cat_detail
+
 
 def show_missing_info(df):
     st.write("<h6> Missing values information for the dataset </h6>",
@@ -21,8 +22,8 @@ def show_missing_info(df):
     null_text = df.isnull().any()
     null_val = df.isnull().sum()
     total_val = df.shape[0]
-    null_dict = {'Sr. no.' : list(),'Column': list(), 'isNull/isNan': list(),
-                 'Count': list(),"missing data (%)":list()}
+    null_dict = {'Sr. no.': list(), 'Column': list(), 'isNull/isNan': list(),
+                 'Count': list(), "missing data (%)": list()}
     for i in range(len(df.columns)):
         null_dict['Sr. no.'].append(i+1)
         null_dict['Column'].append(df.columns[i])
@@ -43,59 +44,71 @@ def show_missing_info(df):
                 col_names.append(df.columns[i])
     return col_names
 
-def handle(missing_text,missing_columns):
+
+def handle(missing_text, missing_columns):
     if (missing_text == "Delete selected columns"):
-        session_state.df_train = session_state.df_train.drop(missing_columns, axis=1)
+        session_state.df_train = session_state.df_train.drop(
+            missing_columns, axis=1)
         if ("df_test" in session_state):
-            session_state.df_test = session_state.df_test.drop(missing_columns, axis=1)
+            session_state.df_test = session_state.df_test.drop(
+                missing_columns, axis=1)
     else:
         # Imputation
         my_imputer = SimpleImputer()
-        session_state.df_train = pd.DataFrame(my_imputer.fit_transform(session_state.df_train),columns=session_state.df_train.columns)
+        session_state.df_train = pd.DataFrame(my_imputer.fit_transform(
+            session_state.df_train), columns=session_state.df_train.columns)
 
         if "df_test" in session_state:
-            session_state.df_test = pd.DataFrame(my_imputer.transform(session_state.df_test),columns=session_state.df_test.columns)
+            session_state.df_test = pd.DataFrame(my_imputer.transform(
+                session_state.df_test), columns=session_state.df_test.columns)
 
-def encode(text,encode_col_names):
+
+def encode(text, encode_col_names):
     if (text == "Label Encoding"):
         label_encode(encode_col_names)
     else:
         one_hot_encode(encode_col_names)
 
+
 def label_encode(col_names):
     label_encoder = preprocessing.LabelEncoder()
 
     for col in col_names:
-        session_state.df_train[col] = label_encoder.fit_transform(session_state.df_train[col])
+        session_state.df_train[col] = label_encoder.fit_transform(
+            session_state.df_train[col])
         if "df_test" in session_state:
             if (col in session_state.df_test.columns):
-                session_state.df_test[col] = label_encoder.fit_transform(session_state.df_test[col])
+                session_state.df_test[col] = label_encoder.fit_transform(
+                    session_state.df_test[col])
+
 
 def one_hot_encode(col_names):
-    session_state.df_train = pd.get_dummies(session_state.df_train,columns=col_names,drop_first=True)
+    session_state.df_train = pd.get_dummies(
+        session_state.df_train, columns=col_names, drop_first=True)
     if "df_test" in session_state:
         test_columns = list()
         for col in col_names:
             if (col in session_state.df_test):
                 test_columns.append(col)
-        session_state.df_test = pd.get_dummies(session_state.df_test,columns=test_columns,drop_first=True)
+        session_state.df_test = pd.get_dummies(
+            session_state.df_test, columns=test_columns, drop_first=True)
 
 
 def show_pre_processing():
-    
+
     # Title
     st.write("<h1 style = 'text-align : center';> Pre-processing of data </h1>",
              unsafe_allow_html=True)
     st.write("---")
-
 
     # Handling categorical values
     st.write(" <h4> Encode categorical features </h4> ", unsafe_allow_html=True)
     categorical_detail = detail(session_state.df_train)
     st.write("<h6> Datatype of all columns in dataset</h6>",
              unsafe_allow_html=True)
-    
-    st.dataframe(pd.DataFrame(categorical_detail,columns=["Sr. no.","Column","Datatype","Unique values count"]),hide_index=True)
+
+    st.dataframe(pd.DataFrame(categorical_detail, columns=[
+                 "Sr. no.", "Column", "Datatype", "Unique values count"]), hide_index=True)
 
     col_names_categorical = list()
     for i in range(len(categorical_detail)):
@@ -117,22 +130,23 @@ def show_pre_processing():
         2. The number of categories is quite **large** as one-hot encoding can lead to high memory consumption
         """)
         add_vertical_space(2)
-        st.write("<h6>Choose columns for encoding</h6>",unsafe_allow_html=True)
-        encode_col_names = st.multiselect("Select",col_names_categorical,label_visibility="collapsed")
+        st.write("<h6>Choose columns for encoding</h6>",
+                 unsafe_allow_html=True)
+        encode_col_names = st.multiselect(
+            "Select", col_names_categorical, label_visibility="collapsed")
         st.write(" <h6> Select a method for encoding </h6>",
                  unsafe_allow_html=True)
         encoder_text = st.selectbox(
             "Select", ["Label Encoding", "One Hot Encoding"], label_visibility="collapsed")
-        
+
         apply_btn = st.button("Apply")
 
         if apply_btn:
-            encode(encoder_text,encode_col_names)
+            encode(encoder_text, encode_col_names)
             st.experimental_rerun()
     add_vertical_space(2)
     st.write("---")
     add_vertical_space(2)
-
 
     # Handling missing values
     st.write("<h4> Handle missing values </h4>", unsafe_allow_html=True)
@@ -146,15 +160,12 @@ def show_pre_processing():
         st.write("<h6> Select a method </h6>", unsafe_allow_html=True)
         missing_text = st.selectbox("Select", ["Delete selected columns",
                                     "Impute the columns"], label_visibility="collapsed")
-        
-        apply_btn = st.button("Apply",key="missing_key")
+
+        apply_btn = st.button("Apply", key="missing_key")
 
         if apply_btn:
-            handle(missing_text,missing_columns)
+            handle(missing_text, missing_columns)
             st.experimental_rerun()
-        
-    st.write("---")
-            
 
     st.write("---")
 
