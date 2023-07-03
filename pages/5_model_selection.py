@@ -12,6 +12,7 @@ from sklearn.linear_model import LogisticRegression
 import streamlit as st
 from streamlit import session_state
 from streamlit_extras.add_vertical_space import add_vertical_space
+import joblib
 
 
 def parameters(model):
@@ -30,7 +31,7 @@ def parameters(model):
         params_text = {'penalty': 'l2', 'dual': False, 'tol': 0.0001, 'C': 1.0, 'fit_intercept': True, 'intercept_scaling': 1, 'class_weight': "balanced",
                        'random_state': 42, 'solver': 'lbfgs', 'max_iter': 100, 'multi_class': 'auto', 'verbose': 0, 'warm_start': False, 'n_jobs': 1, 'l1_ratio': 0}
         options_dict = {'penalty': ['l2', 'l1', 'elasticnet', None], 'solver': [
-            'lbfgs', 'liblinear', 'newton-cg', 'newton-cholesky', 'sag', 'saga'], 'multi_class': ['auto', 'ovr', 'multinomial'],'class_weight' : ['balanced']}
+            'lbfgs', 'liblinear', 'newton-cg', 'newton-cholesky', 'sag', 'saga'], 'multi_class': ['auto', 'ovr', 'multinomial'], 'class_weight': ['balanced']}
     return params_text, options_dict
 
 
@@ -67,7 +68,7 @@ def transform():
 
 
 def show_feature_selection():
-
+    session_state.cnt = 1
     # Title
     st.write("<h1 style = 'text-align : center';> Select model for prediction </h1>",
              unsafe_allow_html=True)
@@ -146,6 +147,7 @@ def show_feature_selection():
     save_model = st.button("Save this model")
     if save_model:
         session_state.model_type = model_type
+        joblib.dump(model, "model_joblib")
         session_state.model = model
     st.write("---")
 
@@ -188,12 +190,12 @@ def show_feature_selection():
         k_val = 10
         n_splits = 10
         if cross_val_type == cross_val_options[0]:
-            k_val = st.slider("Choose the value of k",1,20,10)
+            k_val = st.slider("Choose the value of k", 1, 20, 10)
         else:
-            n_splits = st.slider("Choose the value for n_splits",1,20,10)
+            n_splits = st.slider("Choose the value for n_splits", 1, 20, 10)
         add_vertical_space(2)
         perform_btn = st.button("Perform", key="cross")
-        
+
         if perform_btn:
             try:
                 session_state.cross_val_used = True
@@ -208,8 +210,7 @@ def show_feature_selection():
                         test_size=0.3, train_size=0.7, n_splits=n_splits)
                     score_data = cross_val_score(session_state.model, session_state.final_X, np.ravel(
                         session_state.y), cv=shuffle_split)
-                    
-                
+
                 session_state.y_true = session_state.y
                 st.write("**Results of cross validation**")
                 st.text(f"cross validation scores : {score_data}")
@@ -220,7 +221,6 @@ def show_feature_selection():
                 traceback_str = str(traceback.format_exc())
                 last_line = traceback_str.strip().split('\n')[-1]
                 st.write(last_line)
-
 
     st.write("---")
 
