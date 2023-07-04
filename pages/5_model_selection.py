@@ -24,7 +24,7 @@ def download_model(model):
     # Provide a download button for the model
     with open(temp_file, "rb") as file:
         download_btn = st.download_button("Download Model", file.read(
-        ), file_name=fileName, mime="application/octet-stream", accept=".pkl")  # type: ignore
+        ), file_name=fileName, mime="application/octet-stream")  # type: ignore
         if download_btn:
             session_state.cnt = session_state.cnt + 1
 
@@ -39,10 +39,10 @@ def parameters(model):
         params_text = {'kernel': 'rbf', 'degree': 3, 'gamma': 'scale', 'coef0': 0.0, 'tol': 0.001,
                        'C': 1.0, 'epsilon': 0.1, 'shrinking': True, 'cache_size': 200, 'verbose': False, 'max_iter': -1}
         options_dict = {'kernel': [
-            'linear', 'poly', 'rbf', 'sigmoid', 'precomputed'], 'gamma': ['scale', 'auto']}
+            'rbf', 'poly', 'linear', 'sigmoid', 'precomputed'], 'gamma': ['scale', 'auto']}
     elif model == "Linear Regression":
         params_text = {'fit_intercept': True, 'copy_X': True,
-                       'n_jobs': 0, 'positive': False}
+                       'n_jobs': 1, 'positive': False}
         options_dict = {}
     elif model == "Logistic Regression":
         params_text = {'penalty': 'l2', 'dual': False, 'tol': 0.0001, 'C': 1.0, 'fit_intercept': True, 'intercept_scaling': 1, 'class_weight': "balanced",

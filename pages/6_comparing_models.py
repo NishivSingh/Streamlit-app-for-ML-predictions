@@ -1,8 +1,30 @@
 import joblib
+import numpy as np
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 import streamlit as st
 import pandas as pd
 from streamlit import session_state
 from streamlit_extras.add_vertical_space import add_vertical_space
+
+
+def evaluation(y, y_):
+    mae = mean_absolute_error(y, y_)
+    mse = mean_squared_error(y, y_)
+    rmse = np.sqrt(mean_squared_error(y, y_))
+    r_squared = r2_score(y, y_)
+    return mae, mse, rmse, r_squared
+
+
+def get_results(model, compare_data_dict):
+    compare_data_dict['model name'].append(str(model))
+    model.fit(session_state.final_X_train,
+              np.ravel(session_state.y_train))
+    y_pred = model.predict(session_state.final_X_test)
+    mae, mse, rmse, r2_score = evaluation(session_state.y_test, y_pred)
+    compare_data_dict["mae"].append(mae)
+    compare_data_dict["mse"].append(mse)
+    compare_data_dict["rmse"].append(rmse)
+    compare_data_dict["r2 score"].append(r2_score)
 
 
 def show_model_comparison():
@@ -12,20 +34,39 @@ def show_model_comparison():
              unsafe_allow_html=True)
     st.write("---")
 
+    # Upload models
     st.subheader("Upload models for comparison")
     models = st.file_uploader(
-        "Upload models for comparison", accept_multiple_files=True, label_visibility="collapsed")
-    ml_models = list()
+        "Upload models for comparison", [".pkl"], accept_multiple_files=True, label_visibility="collapsed")
+    ml_models = dict()
+    ml_models[str(session_state.model)] = session_state.model
     if models is not None:
         for pickle_model in models:
             model = joblib.load(pickle_model)
-            ml_models.append(model)
+            if (str(model) not in ml_models.keys()):
+                ml_models[str(model)] = model
         session_state.ml_models = ml_models
 
-    for model in session_state.ml_models:
-        st.text(model)
-
     st.write("---")
+
+    # Available models
+    st.write("### Available unique models")
+    add_vertical_space(1)
+    for model in session_state.ml_models.values():
+        st.text(model)
+    add_vertical_space(2)
+    compare_btn = st.button("Compare")
+    st.write("---")
+
+    # Results
+    compare_data_dict = {"model name": list(), "rmse": list(
+    ), "mae": list(), "mse": list(), "r2 score": list()}
+    if compare_btn:
+        for model in ml_models.values():
+            get_results(model, compare_data_dict)
+        st.write("### Results")
+        st.dataframe(compare_data_dict, use_container_width=True)
+        st.write("---")
 
 
 if ("df_train" not in session_state):
