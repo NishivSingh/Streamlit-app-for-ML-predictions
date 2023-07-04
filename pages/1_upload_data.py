@@ -39,6 +39,7 @@ def display_upload_data_page():
     if training_data_file_name is not None:
         df_train = pd.read_csv(training_data_file_name)
         session_state.df_train = df_train
+        session_state.cnt = 1
 
     # Displaying data
     if "df_train" in session_state:

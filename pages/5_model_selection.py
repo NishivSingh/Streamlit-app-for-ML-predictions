@@ -1,3 +1,4 @@
+import os
 import traceback
 import numpy as np
 import pandas as pd
@@ -13,6 +14,22 @@ import streamlit as st
 from streamlit import session_state
 from streamlit_extras.add_vertical_space import add_vertical_space
 import joblib
+
+
+def download_model(model):
+    # Save the model to a temporary file
+    temp_file = "temp_model.pkl"
+    joblib.dump(model, temp_file)
+    fileName = "model" + str(session_state.cnt) + ".pkl"
+    # Provide a download button for the model
+    with open(temp_file, "rb") as file:
+        download_btn = st.download_button("Download Model", file.read(
+        ), file_name=fileName, mime="application/octet-stream", accept=".pkl")  # type: ignore
+        if download_btn:
+            session_state.cnt = session_state.cnt + 1
+
+    # Remove the temporary file
+    os.remove(temp_file)
 
 
 def parameters(model):
@@ -68,7 +85,6 @@ def transform():
 
 
 def show_feature_selection():
-    session_state.cnt = 1
     # Title
     st.write("<h1 style = 'text-align : center';> Select model for prediction </h1>",
              unsafe_allow_html=True)
@@ -147,7 +163,6 @@ def show_feature_selection():
     save_model = st.button("Save this model")
     if save_model:
         session_state.model_type = model_type
-        joblib.dump(model, "model_joblib")
         session_state.model = model
     st.write("---")
 
@@ -221,6 +236,12 @@ def show_feature_selection():
                 traceback_str = str(traceback.format_exc())
                 last_line = traceback_str.strip().split('\n')[-1]
                 st.write(last_line)
+
+    st.write("---")
+    if "model" in session_state:
+        st.write(
+            "<h2> Download model as a file</h2>", unsafe_allow_html=True)
+        download_model(session_state.model)
 
     st.write("---")
 
