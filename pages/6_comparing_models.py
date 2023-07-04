@@ -62,11 +62,23 @@ def show_model_comparison():
     compare_data_dict = {"model name": list(), "rmse": list(
     ), "mae": list(), "mse": list(), "r2 score": list()}
     if compare_btn:
-        for model in ml_models.values():
+        for model in session_state.ml_models.values():
             get_results(model, compare_data_dict)
+        session_state.compare_data_dict = compare_data_dict
+
+    if "compare_data_dict" in session_state:
         st.write("### Results")
-        st.dataframe(compare_data_dict, use_container_width=True)
+        st.dataframe(session_state.compare_data_dict, use_container_width=True)
         st.write("---")
+
+    st.write("#### Choose final model from available models")
+    final_model = st.selectbox(
+        "Select", session_state.ml_models.keys(), label_visibility="collapsed")
+    final_model_btn = st.button("Use this model for prediction")
+
+    if final_model_btn:
+        session_state.final_model = session_state.ml_models[final_model]
+        st.text(session_state.final_model)
 
 
 if ("df_train" not in session_state):
