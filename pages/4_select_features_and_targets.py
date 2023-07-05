@@ -61,10 +61,16 @@ def show_feature_selection():
 
     elif method_for_selection == options_for_method[3]:
         add_vertical_space(2)
+        st.write("###### Some examples for using this feature")
+        st.write(
+            "- **[abc]** : Any character listed between the square brackets")
+        st.write(
+            "- **p1|p2|p3** :  matches any of the patterns p1, p2, or p3")
+        st.write(
+            "- **[0-9]** : match any digit from 0 through to 9.")
         st.write(
             "*For more information about how to use regex query please check out this* [link](https://www.geeksforgeeks.org/mysql-regular-expressions-regexp/)")
-        st.write(
-            "*As a basic intro if you type p1|p2|p3  =>   return matches having any of the patterns p1, p2, or p3*")
+
         add_vertical_space(2)
         RegEx_query = st.text_input("Type your query")
         if RegEx_query:
