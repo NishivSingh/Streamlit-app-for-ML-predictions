@@ -3,13 +3,21 @@ import re
 import pandas as pd
 from streamlit import session_state
 from streamlit_extras.add_vertical_space import add_vertical_space
+import random
 
 
 def show_feature_selection():
-
     # Title
     st.write("<h1 style = 'text-align : center';> Select features and targets </h1>",
              unsafe_allow_html=True)
+    st.write("---")
+
+    # Setting random seed
+    st.write("#### Choose a seed value")
+    seed_val = st.number_input(
+        "Choose a seed value", value=42, label_visibility="collapsed")
+    session_state.seed_val = seed_val
+    random.seed(session_state.seed_val)
     st.write("---")
 
     # Targets selection
@@ -26,9 +34,9 @@ def show_feature_selection():
     if "targets" in session_state:
         st.dataframe(pd.DataFrame(session_state.targets,
                      columns=['selected columns']))
-        
+
     st.write("---")
-    
+
     # Features selection
     st.write("<h4> Select feature columns </h4> ", unsafe_allow_html=True)
     options_for_method = [None, "using column name",
@@ -53,8 +61,10 @@ def show_feature_selection():
 
     elif method_for_selection == options_for_method[3]:
         add_vertical_space(2)
-        st.write("*For more information about how to use regex query please check out this* [link](https://www.geeksforgeeks.org/mysql-regular-expressions-regexp/)")
-        st.write("*As a basic intro if you type p1|p2|p3  =>   return matches having any of the patterns p1, p2, or p3*")
+        st.write(
+            "*For more information about how to use regex query please check out this* [link](https://www.geeksforgeeks.org/mysql-regular-expressions-regexp/)")
+        st.write(
+            "*As a basic intro if you type p1|p2|p3  =>   return matches having any of the patterns p1, p2, or p3*")
         add_vertical_space(2)
         RegEx_query = st.text_input("Type your query")
         if RegEx_query:
@@ -69,7 +79,7 @@ def show_feature_selection():
     if "features" in session_state:
         st.dataframe(pd.DataFrame(session_state.features,
                      columns=['selected columns']))
-    
+
     st.write("---")
 
 

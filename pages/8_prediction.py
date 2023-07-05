@@ -1,3 +1,4 @@
+import random
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -11,6 +12,7 @@ def convert_df_to_csv(df):
 
 
 def show_results():
+    random.seed(session_state.seed_val)
     # Title
     st.write("<h1 style = 'text-align : center';> Prediction on new data </h1>",
              unsafe_allow_html=True)

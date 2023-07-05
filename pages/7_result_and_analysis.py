@@ -1,3 +1,4 @@
+import random
 from matplotlib import pyplot as plt
 from mlxtend.plotting import plot_confusion_matrix
 import numpy as np
@@ -77,7 +78,7 @@ def confusion_matrix_plot():
 
 
 def show_results():
-
+    random.seed(session_state.seed_val)
     # Title
     st.write("<h1 style = 'text-align : center';> Result and Analysis </h1>",
              unsafe_allow_html=True)

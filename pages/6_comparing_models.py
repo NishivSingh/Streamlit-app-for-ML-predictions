@@ -1,3 +1,4 @@
+import random
 import joblib
 import numpy as np
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
@@ -28,7 +29,7 @@ def get_results(model, compare_data_dict):
 
 
 def show_model_comparison():
-
+    random.seed(session_state.seed_val)
     # Title
     st.write("<h1 style = 'text-align : center';> Compare different models </h1>",
              unsafe_allow_html=True)

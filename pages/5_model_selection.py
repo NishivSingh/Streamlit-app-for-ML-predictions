@@ -1,4 +1,5 @@
 import os
+import random
 import re
 import traceback
 import numpy as np
@@ -128,6 +129,7 @@ def grid_search_cv(model, params_grid, model_type):
 
 
 def show_feature_selection():
+    random.seed(session_state.seed_val)
     # Title
     st.write("<h1 style = 'text-align : center';> Select model for prediction </h1>",
              unsafe_allow_html=True)
