@@ -1,8 +1,9 @@
 import os
+import re
 import traceback
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import LeavePOut, ShuffleSplit, StratifiedKFold, train_test_split
+from sklearn.model_selection import GridSearchCV, LeavePOut, ShuffleSplit, StratifiedKFold, train_test_split
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import cross_val_predict
 from sklearn.preprocessing import MinMaxScaler
@@ -70,6 +71,16 @@ def create_model(model_text, model_params):
     return LogisticRegression(**model_params)
 
 
+def current_model(model_text):
+    if (model_text == "Support Vector Machine"):
+        return SVR()
+
+    elif (model_text == "Linear Regression"):
+        return LinearRegression()
+
+    return LogisticRegression()
+
+
 def transform():
     if ("scaler" in session_state):
         session_state.final_X = session_state.scaler.transform(session_state.X)
@@ -82,6 +93,38 @@ def transform():
         session_state.final_X = session_state.X
         session_state.final_X_train = session_state.X_train
         session_state.final_X_test = session_state.X_test
+
+
+def collect_numbers(S, init_val):
+    lst = list()
+    val = str()
+    for i in range(len(S)):
+        if (S[i] == ','):
+            if isinstance(init_val, int):
+                lst.append(int(val))
+            else:
+                lst.append(float(val))
+            val = ""
+        else:
+            val += S[i]
+    if isinstance(init_val, int):
+        lst.append(int(val))
+    else:
+        lst.append(float(val))
+    return lst
+
+
+def grid_search_cv(model, params_grid, model_type):
+    scoring = "precision"
+    cv = 3
+    if (model_type == "Regression model"):
+        scoring = "r2"
+        cv = 10
+
+    clf = GridSearchCV(model, params_grid, cv=cv, scoring=scoring)
+    clf.fit(session_state.final_X, np.ravel(
+        session_state.y))
+    return clf.best_params_
 
 
 def show_feature_selection():
@@ -125,7 +168,12 @@ def show_feature_selection():
     st.write("---")
 
     # Setting hyper-parameters
-    st.write("<h4> Set hyper-parameters </h4>", unsafe_allow_html=True)
+    st.write("<h4> Tune hyper-parameters using GridSearchCV </h4>",
+             unsafe_allow_html=True)
+    st.write(
+        "- For dropdown values simply select multiple values from the available set.")
+
+    st.write("- For numerical values provide the numbers as comma separated values")
     model_params, option_dict = parameters(model_text)
 
     keys = list(model_params.keys())
@@ -140,30 +188,43 @@ def show_feature_selection():
         col2.text_input(":", "=", key=i,
                         label_visibility="collapsed", disabled=True)
 
+        new_values = list()
         if isinstance(value, str):
-            new_value = col3.selectbox(
-                "Value", options=option_dict[keys[i]], key=f"value_input_{i}", label_visibility="collapsed",)
+            new_values = col3.multiselect(
+                "Value", options=option_dict[keys[i]], default=value, key=f"value_input_{i}", label_visibility="collapsed",)
         elif isinstance(value, bool):
-            new_value = col3.checkbox(
-                "Value", value=value, key=f"value_input_{i}", label_visibility="collapsed")
+            new_value = col3.multiselect(
+                "Value", ['True', 'False'], default='True' if value else 'False', key=f"value_input_{i}", label_visibility="collapsed")
+            for val in new_value:
+                new_values.append(True if val == "True" else False)
         else:
-            new_value = col3.number_input(
+            new_value = col3.text_input(
                 "Value", value, key=f"value_input_{i}", label_visibility="collapsed")
 
-        model_params[keys[i]] = new_value
+            new_values = collect_numbers(new_value, value)
 
-    session_state.model_params = model_params
+        model_params[keys[i]] = new_values
 
     add_vertical_space(2)
     st.write("<h5>Current hyper-parameters</h5>", unsafe_allow_html=True)
-    st.write(session_state.model_params)
+    st.write(model_params)
+
+    grid_btn = st.button("Perform GridSearchCV")
+    if grid_btn:
+        session_state.model_params = grid_search_cv(
+            current_model(model_text), model_params, model_type)
+        st.write("---")
+        st.subheader("Best hyper-parameters from the selected values")
+        st.write(session_state.model_params)
 
     # Storing the model
-    model = create_model(session_state.model_text, session_state.model_params)
-    save_model = st.button("Save this model")
-    if save_model:
-        session_state.model_type = model_type
-        session_state.model = model
+    if "model_params" in session_state:
+        model = create_model(session_state.model_text,
+                             session_state.model_params)
+        save_model = st.button("Save this model")
+        if save_model:
+            session_state.model_type = model_type
+            session_state.model = model
     st.write("---")
 
     # Additional operations
