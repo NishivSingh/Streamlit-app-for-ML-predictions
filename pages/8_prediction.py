@@ -32,7 +32,7 @@ def show_results():
 
         st.write("---")
         if predict_btn:
-            modified_df_test = df_test
+            modified_df_test = df_test[session_state.features]
             if "scaler" in session_state:
                 modified_df_test = session_state.scaler.transform(df_test)
 

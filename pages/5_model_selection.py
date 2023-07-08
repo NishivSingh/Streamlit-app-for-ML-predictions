@@ -217,10 +217,10 @@ def show_feature_selection():
             current_model(model_text), model_params, model_type)
         st.write("---")
         st.subheader("Best hyper-parameters from the selected values")
-        st.write(session_state.model_params)
 
     # Storing the model
     if "model_params" in session_state:
+        st.write(session_state.model_params)
         model = create_model(session_state.model_text,
                              session_state.model_params)
         save_model = st.button("Save this model")

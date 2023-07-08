@@ -23,6 +23,7 @@ def evaluation():
 def scatterplot():
     y = session_state.y_true
     fig, ax = plt.subplots()
+    # ax.set_aspect('equal')
     ax.scatter(y, session_state.y_pred, edgecolors=(0, 0, 0))
     ax.plot([y.min(), y.max()], [y.min(), y.max()], 'k--', lw=4)
     ax.set_title(f"{session_state.targets[0]} plot")
