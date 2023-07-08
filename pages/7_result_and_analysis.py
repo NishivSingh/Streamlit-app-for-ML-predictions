@@ -89,8 +89,12 @@ def show_results():
     if "final_model" not in session_state:
         session_state.final_model = session_state.model
 
-    st.write(
-        f"<div style = 'display:flex;'><h5> Model used for predictions : </h5> <p>{session_state.final_model} </p> </div>", unsafe_allow_html=True)
+    st.write("<h4 style = 'text-align : center';> Model used  </h4>",
+             unsafe_allow_html=True)
+
+    col1, col2, col3 = st.columns([1, 4, 1])
+    col2.write(session_state.final_model)
+    st.write("---")
     session_state.final_model.fit(
         session_state.final_X_train, np.ravel(session_state.y_train))
     session_state.y_pred = session_state.final_model.predict(

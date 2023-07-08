@@ -1,31 +1,40 @@
 import random
 import joblib
 import numpy as np
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score, accuracy_score
 import streamlit as st
 import pandas as pd
 from streamlit import session_state
 from streamlit_extras.add_vertical_space import add_vertical_space
 
 
-def evaluation(y, y_):
-    mae = mean_absolute_error(y, y_)
-    mse = mean_squared_error(y, y_)
-    rmse = np.sqrt(mean_squared_error(y, y_))
-    r_squared = r2_score(y, y_)
-    return mae, mse, rmse, r_squared
+def evaluation(y, y_, model_type):
+    if model_type == "Regression model":
+        mae = mean_absolute_error(y, y_)
+        mse = mean_squared_error(y, y_)
+        rmse = np.sqrt(mean_squared_error(y, y_))
+        r_squared = r2_score(y, y_)
+        return mae, mse, rmse, r_squared
+    else:
+        return accuracy_score(y_true=y, y_pred=y_)
 
 
-def get_results(model, compare_data_dict):
+def get_results(model, compare_data_dict, model_type):
     compare_data_dict['model name'].append(str(model))
     model.fit(session_state.final_X_train,
               np.ravel(session_state.y_train))
     y_pred = model.predict(session_state.final_X_test)
-    mae, mse, rmse, r2_score = evaluation(session_state.y_test, y_pred)
-    compare_data_dict["mae"].append(mae)
-    compare_data_dict["mse"].append(mse)
-    compare_data_dict["rmse"].append(rmse)
-    compare_data_dict["r2 score"].append(r2_score)
+
+    if model_type == "Regression model":
+        mae, mse, rmse, r2_score = evaluation(
+            session_state.y_test, y_pred, model_type)  # type: ignore
+        compare_data_dict["mae"].append(mae)
+        compare_data_dict["mse"].append(mse)
+        compare_data_dict["rmse"].append(rmse)
+        compare_data_dict["r2 score"].append(r2_score)
+    else:
+        compare_data_dict["accuracy score"].append(
+            evaluation(session_state.y_test, y_pred, model_type))
 
 
 def show_model_comparison():
@@ -60,11 +69,15 @@ def show_model_comparison():
     st.write("---")
 
     # Results
-    compare_data_dict = {"model name": list(), "rmse": list(
-    ), "mae": list(), "mse": list(), "r2 score": list()}
+    if session_state.model_type == "Regression model":
+        compare_data_dict = {"model name": list(), "rmse": list(
+        ), "mae": list(), "mse": list(), "r2 score": list()}
+    else:
+        compare_data_dict = {"model name": list(), "accuracy score": list()}
+
     if compare_btn:
         for model in session_state.ml_models.values():
-            get_results(model, compare_data_dict)
+            get_results(model, compare_data_dict, session_state.model_type)
         session_state.compare_data_dict = compare_data_dict
 
     if "compare_data_dict" in session_state:
