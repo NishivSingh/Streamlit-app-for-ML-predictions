@@ -34,7 +34,8 @@ def show_results():
         if predict_btn:
             modified_df_test = df_test[session_state.features]
             if "scaler" in session_state:
-                modified_df_test = session_state.scaler.transform(df_test)
+                modified_df_test = session_state.scaler.transform(
+                    modified_df_test)
 
             session_state.final_model.fit(session_state.final_X_train,
                                           np.ravel(session_state.y_train))
